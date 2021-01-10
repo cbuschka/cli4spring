@@ -1,18 +1,24 @@
 package com.github.cbuschka.cli4spring;
 
-import com.github.cbuschka.cli4spring.annotations.CLIConfig;
-import com.github.cbuschka.cli4spring.annotations.CLISubCommand;
-import com.github.cbuschka.cli4spring.metadata.MetadataFactory;
+import com.github.cbuschka.cli4spring.internal.metadata.CommandMetadata;
+import com.github.cbuschka.cli4spring.internal.metadata.MetadataFactory;
+import com.github.cbuschka.cli4spring.internal.metadata.MetadataRegistry;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 
+import java.util.List;
+
 public class CLIBeanPostProcessor implements BeanPostProcessor
 {
-	private final MetadataFactory metadataFactory;
+	private static final String[] excludedBeanNamePrefixeds = {"org.springframework", "com.github.cbuschka.cli4spring"};
 
-	public CLIBeanPostProcessor(MetadataFactory metadataFactory)
+	private final MetadataFactory metadataFactory = new MetadataFactory();
+
+	private final MetadataRegistry metadataRegistry;
+
+	public CLIBeanPostProcessor(MetadataRegistry metadataRegistry)
 	{
-		this.metadataFactory = metadataFactory;
+		this.metadataRegistry = metadataRegistry;
 	}
 
 	@Override
@@ -24,26 +30,30 @@ public class CLIBeanPostProcessor implements BeanPostProcessor
 	@Override
 	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException
 	{
-		if (isSubCommand(bean))
+		if (isIncluded(beanName))
 		{
-			this.metadataFactory.addSubCommand(bean);
-		}
+			List<CommandMetadata> commandMetadatas = this.metadataFactory.build(bean);
+			for (CommandMetadata commandMetadata : commandMetadatas)
+			{
+				this.metadataRegistry.addCommand(commandMetadata);
+			}
 
-		if (isConfig(bean))
-		{
-			this.metadataFactory.addConfig(bean);
+			// FIXME configs
 		}
 
 		return bean;
 	}
 
-	private boolean isSubCommand(Object bean)
+	private boolean isIncluded(String beanName)
 	{
-		return bean.getClass().getAnnotation(CLISubCommand.class) != null;
-	}
+		for (String prefix : excludedBeanNamePrefixeds)
+		{
+			if (beanName.startsWith(prefix))
+			{
+				return false;
+			}
+		}
 
-	private boolean isConfig(Object bean)
-	{
-		return bean.getClass().getAnnotation(CLIConfig.class) != null;
+		return true;
 	}
 }

@@ -3,7 +3,7 @@ package com.github.cbuschka.cli4spring.autoconfigure;
 import com.github.cbuschka.cli4spring.CLI4SpringCommandLineRunner;
 import com.github.cbuschka.cli4spring.CLI4SpringConfiguration;
 import com.github.cbuschka.cli4spring.CLIBeanPostProcessor;
-import com.github.cbuschka.cli4spring.metadata.MetadataFactory;
+import com.github.cbuschka.cli4spring.internal.metadata.MetadataRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -18,7 +18,7 @@ public class Cli4SpringAutoConfiguration
 	@Autowired
 	private Cli4SpringProperties properties;
 
-	private static MetadataFactory metadataFactory = new MetadataFactory();
+	private static MetadataRegistry metadataRegistry = new MetadataRegistry();
 
 	@Bean
 	public CLI4SpringConfiguration cli4SpringConfig()
@@ -29,13 +29,13 @@ public class Cli4SpringAutoConfiguration
 	@Bean
 	public static CLIBeanPostProcessor cliBeanPostProcessor()
 	{
-		return new CLIBeanPostProcessor(metadataFactory);
+		return new CLIBeanPostProcessor(metadataRegistry);
 	}
 
 	@Bean
 	// @ConditionalOnMissingBean
 	public CommandLineRunner cli4SpringCommandLineRunner()
 	{
-		return new CLI4SpringCommandLineRunner(metadataFactory);
+		return new CLI4SpringCommandLineRunner(metadataRegistry);
 	}
 }

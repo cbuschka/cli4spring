@@ -1,14 +1,23 @@
 package com.github.cbuschka.cli4spring.annotations;
 
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Target(ElementType.FIELD)
 public @interface CLIOption
 {
-	String description();
+	char[] shortName();
 
-	String[] shortNames();
+	String[] longName();
 
-	String[] longNames();
+	String description() default "";
 
 	boolean required() default true;
 
-	String defaultValue();
+	String defaultValue() default "";
 }
